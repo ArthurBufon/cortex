@@ -1,300 +1,231 @@
-## 1. Contexto do Projeto
+# AGENTS
 
-CORTEX é um sistema web para gestão de barbearias, salões de beleza e negócios de atendimento por agendamento.
+## Princípios de Desenvolvimento
 
-O sistema possui escopo inicial simples, com foco em:
-
-* empresas
-* usuários
-* profissionais
-* clientes
-* serviços
-* agendamentos
-* financeiro básico
-* configurações por empresa
-
-O projeto deve ser reutilizável para múltiplas empresas, seguindo uma estrutura multi-tenant baseada em `empresa_id`.
+* Seguir melhores práticas atuais (2026)
+* Código idiomático, tipado e legível
+* KISS é inegociável
+* Preferir soluções simples e previsíveis
+* Fazer alterações mínimas e localizadas
+* Nunca refatorar fora do escopo solicitado
+* Nunca criar abstrações, arquivos ou camadas sem necessidade real
+* Priorizar reutilização do código existente antes de criar novos componentes
 
 ---
 
-## 2. Regras Gerais Para Agentes
+## Dúvidas
 
-* Economize tokens sempre que possível.
-* Seja direto e evite explicações longas quando a tarefa for objetiva.
-* Antes de alterar código, entenda o padrão já existente no projeto.
-* Novas features, telas e funções devem seguir o estilo dos arquivos já existentes.
-* Refatorações devem ser minimalistas e preservar o comportamento atual, salvo pedido explícito em contrário.
-* Não altere formatação, espaçamento, alinhamento ou estilo visual do código sem necessidade real.
-* Não crie abstrações, camadas, arquivos ou helpers sem justificativa concreta.
-* Se faltar contexto, procure primeiro em arquivos do próprio repositório.
-* Se ainda faltar informação, pergunte antes de assumir regras de negócio importantes.
+* Se surgirem dúvidas, perguntar até todas ficarem esclarecidas antes de planejar, implementar ou revisar
+* Nunca assumir requisitos implícitos quando houver ambiguidade
+* Validar expectativas e critérios de aceite antes de seguir com mudanças que dependam de interpretação
 
 ---
 
-## 3. Princípios de Desenvolvimento
+## Processo de Execução
 
-* KISS é inegociável.
-* Prefira soluções simples, previsíveis e legíveis.
-* Escreva código idiomático para Laravel, React, Inertia e TypeScript.
-* Evite overengineering.
-* Evite duplicação quando ela começar a prejudicar manutenção.
-* Não antecipe funcionalidades futuras sem necessidade real.
-* Preserve a estrutura existente do projeto.
+Antes de implementar:
 
----
+1. Entender o problema
+2. Investigar causa raiz
+3. Validar hipóteses no código
+4. Planejar abordagem
+5. Implementar em etapas pequenas
+6. Validar resultado e possíveis impactos
 
-## 4. Comandos
+Regras:
 
-Não rode comandos destrutivos ou demorados sem necessidade.
-
-Não rode automaticamente:
-
-* `npm run build`
-* `npm run dev`
-* `pnpm build`
-* `pnpm dev`
-* comandos de deploy
-* comandos que resetem banco de dados
-* comandos que apaguem arquivos ou dados
-
-Quando precisar validar algo, prefira comandos pontuais e seguros.
-
-Se houver dúvida sobre qual gerenciador de pacotes usar, verifique os arquivos do projeto antes de executar comandos.
+* Nunca sair codando imediatamente
+* Nunca assumir que o handoff está correto
+* Quebrar problemas complexos em etapas menores
+* Explicar riscos relevantes antes de alterações amplas
+* Preferir edição de código existente ao invés de recriar estruturas
 
 ---
 
-## 5. Estrutura Esperada
+## Nomenclatura
 
-Use a estrutura padrão do Laravel/Inertia sempre que possível.
+* Funções, métodos e classes em português, salvo instrução contrária
+* Ao criar novos arquivos, seguir o padrão já existente no projeto
 
-### Backend
+### Regras de diretório e namespace
 
-* Models: `app/Models`
-* Controllers: `app/Http/Controllers`
-* Requests: `app/Http/Requests`
-* Services: `app/Services`
-* Migrations: `database/migrations`
-* Seeders: `database/seeders`
+* Diretórios e namespaces nunca devem conter verbos
 
-### Frontend
+#### Exemplos
 
-* Pages: `resources/js/Pages`
-* Components: `resources/js/Components`
-* Layouts: `resources/js/Layouts`
-* Types: `resources/js/types` ou padrão já existente no projeto
-
-Não crie novas pastas se o padrão atual do projeto resolver o problema.
+* ❌ `/Services/Carro/Andar`
+* ✅ `/Services/Carro/Movimentacao`
 
 ---
 
-## 6. Multi-tenant
+## Services e Queries
 
-O sistema é multi-tenant.
+O nome do arquivo deve representar apenas o tipo.
 
-Todas as entidades operacionais devem respeitar `empresa_id`.
+### Exemplos
 
-Ao criar queries, listagens, validações ou relacionamentos, garanta que os dados pertencem à empresa do usuário logado.
+* ❌ `FinalizacaoService.php`
+* ✅ `Finalizacao/Service.php`
+* ❌ `CancelamentoQueries.tsx`
+* ✅ `Cancelamento/Queries.tsx`
 
-Entidades principais com escopo por empresa:
+O contexto deve estar no namespace/diretório.
 
-* `users`
-* `profissionais`
-* `clientes`
-* `servicos`
-* `agendamentos`
-* `financeiro_lancamentos`
-* `empresas_configuracoes`
+### Exemplos
 
-Nunca permita que dados de uma empresa sejam acessados, listados, editados ou vinculados por outra empresa.
+* ✅ `App/Services/Pedido/Finalizacao/Service.php`
+* ✅ `resources/js/Queries/Pedido/Cancelamento/Queries.tsx`
 
----
+### PHP
 
-## 7. Regras de Domínio
+Queries nunca devem conter métodos além de:
 
-### Profissionais
+* `index`
+* `show`
+* `store`
+* `update`
+* `destroy`
 
-Use a entidade `profissionais`, não `barbeiros`.
+Caso alguma query muito específica seja necessária, o `Service` deve lidar com essa lógica, mantendo o método com nome 100% em português, simples e objetivo.
 
-`profissionais.user_id` é opcional.
+### JS
 
-Isso permite:
+Queries também devem ser compostas somente por:
 
-* profissional com acesso ao sistema;
-* profissional sem acesso ao sistema;
-* usuário administrativo que não é profissional.
+* `index`
+* `show`
+* `store`
+* `update`
+* `destroy`
 
----
+Caso alguma query específica seja necessária, deve ser usado um diretório específico para o contexto da query.
 
-### Serviços
+Padrão:
 
-A entidade `servicos` pertence a uma empresa.
+```txt
+/Queries/Recurso/QueryEspecifica/Queries.ts
+```
 
-Serviços possuem valor padrão, descrição e observações.
+ou:
 
-No escopo inicial, serviços podem existir apenas como registros populados no banco, sem necessidade de tela completa de cadastro.
+```txt
+/Queries/Recurso/QueryEspecifica/Queries.tsx
+```
 
-O valor do serviço serve como sugestão para o valor do agendamento.
+#### Exemplos
 
----
-
-### Agendamentos
-
-Agendamentos devem possuir:
-
-* `empresa_id`
-* `cliente_id`
-* `profissional_id`
-* `servico_id`
-* `data_agendamento`
-* `valor`
-* `descricao`
-* `observacoes`
-* `status`
-
-O agendamento usa `servico_id` para identificar o serviço realizado.
-
-Ao selecionar um serviço, o valor padrão do serviço deve preencher o valor do agendamento, mas o usuário pode alterar esse valor.
-
-A conta a receber gerada deve usar o valor final do agendamento.
-
-Status iniciais de agendamento:
-
-* `agendado`
-* `cancelado`
-* `concluido`
+* ❌ `Queries/Carro/Queries.tsx: ligarCarro`
+* ✅ `Queries/Carro/Ligar/Queries.tsx: store`
 
 ---
 
-### Financeiro
+## Contexto e Docs
 
-O financeiro usa a tabela única `financeiro_lancamentos`.
+* Sempre analisar `/docs/*` antes de implementar
+* Localizar o contexto completo da feature antes de alterar código
+* Atualizações relevantes devem refletir no `docs/*/specs.md`
+  
+### Regras
 
-A interface pode exibir telas separadas de:
-
-* Contas a Receber
-* Contas a Pagar
-
-Mas ambas são visões filtradas da mesma tabela.
-
-Tipos iniciais:
-
-* `receita`
-* `despesa`
-
-Status iniciais:
-
-* `aberto`
-* `pago`
-* `cancelado`
-
-Ao criar um agendamento, o sistema deve gerar automaticamente um lançamento financeiro:
-
-* `tipo = receita`
-* `status = aberto`
-* `agendamento_id = id do agendamento`
-* `valor = valor do agendamento`
-
-Ao cancelar um agendamento, o lançamento financeiro vinculado também deve ser cancelado se ainda estiver em aberto.
-
-Se o lançamento já estiver pago, não aplicar estorno automático.
+* Docs servem como contexto de negócio e arquitetura
+* Não usar `/docs` para planos temporários.
+* Diretório deve conter somente specs específicas, regras de projeto e contexto.
+* Specs e planos gerados por frameworks devem ser descartados após implementação
 
 ---
 
-## 8. Status e Tipos
+## Planejamento e Implementação de Tasks
 
-Campos de status e tipo devem ser armazenados como `varchar`.
+### Fluxo
 
-Não use `enum` nativo do MySQL para esses campos.
+1. Planejar a task antes de implementar, detalhando etapas e impactos
+2. Validar o plano com o usuário antes de iniciar a implementação
+3. Implementar conforme o plano aprovado
+4. Após implementação concluída e validada:
 
-A aplicação deve controlar valores permitidos usando enums, constantes ou validações do Laravel.
+   * Verificar se existe `docs/features/<feature>/specs.md`
+   * Se existir: atualizar refletindo as mudanças realizadas
+   * Se não existir: perguntar se deve ser criado antes de prosseguir
+5. Deletar o plano do projeto após a implementação — planos são temporários e não devem permanecer na codebase
 
-Campos afetados inicialmente:
+### Regras
 
-* `financeiro_lancamentos.tipo`
-* `financeiro_lancamentos.status`
-* `agendamentos.status`
-
----
-
-## 9. Formatação e Legibilidade
-
-Preserve o estilo do arquivo alterado.
-
-Não reformate arquivos inteiros sem pedido explícito.
-
-Evite mudanças puramente estéticas em código não relacionado à tarefa.
-
-Ao editar código existente:
-
-* mantenha espaçamento compatível;
-* mantenha nomes coerentes com o projeto;
-* altere apenas o necessário;
-* evite mudanças fora do escopo solicitado.
+* Planos nunca devem ser commitados ou mantidos no repositório
+* O `specs.md` da feature é a fonte de verdade após a implementação
+* Toda alteração estrutural relevante deve estar refletida no `specs.md` correspondente
+* Nunca atualizar o `specs.md` antes da implementação estar concluída e validada
 
 ---
 
-## 10. Validações e Segurança
+## Git
 
-Sempre valide entrada do usuário.
+### Commits
 
-Em operações multi-tenant, valide se os registros relacionados pertencem à empresa atual.
+* Commits em português
+* Sempre no imperativo
 
-Exemplos:
+#### Exemplos
 
-* um agendamento só pode usar cliente da mesma empresa;
-* um agendamento só pode usar profissional da mesma empresa;
-* um agendamento só pode usar serviço da mesma empresa;
-* um lançamento financeiro só pode pertencer à empresa atual.
+* `Adiciona`
+* `Corrige`
+* `Remove`
+* `Refatora`
 
-Não confie apenas no frontend para isolamento de dados.
+### Nunca commitar
 
----
-
-## 11. Testes e Verificação
-
-Quando alterar regras importantes, valide pelo menos o fluxo principal afetado.
-
-Priorize verificar:
-
-* criação de cliente;
-* criação de profissional;
-* criação de agendamento;
-* geração de conta a receber;
-* cancelamento de agendamento;
-* isolamento por `empresa_id`.
-
-Se não houver testes automatizados ainda, descreva claramente o que foi validado manualmente.
+* `.env`
+* credenciais
+* tokens
+* arquivos de build
+* logs
 
 ---
 
-## 12. Fora do Escopo Inicial
+## Segurança
 
-Não implemente sem pedido explícito:
+* Nunca expor credenciais no código
+* Variáveis sensíveis sempre em `.env`
+* Nunca logar:
 
-* WhatsApp
-* push notification
-* app mobile
-* comissão de profissionais
-* caixa
-* relatórios avançados
-* integração com pagamentos
-* integração fiscal
-* duração de serviços
-* duração de agendamentos
-* bloqueio de horários
-* permissões avançadas
-* múltiplas empresas por usuário
+  * senhas
+  * tokens
+  * documentos pessoais
+  * dados sensíveis
 
 ---
 
-## 13. Ao Final de Cada Alteração
+## Organização de Imports
 
-Sempre que concluir uma tarefa, informe:
+Todo import deve ser agrupado por categoria lógica.
 
-* o que foi alterado;
-* quais arquivos principais foram afetados;
-* se há migrations, seeders ou comandos necessários;
-* se algo ficou pendente;
-* como validar manualmente a mudança.
+### Regras
 
-Mantenha a resposta objetiva.
+* Nunca misturar categorias
+* Sempre manter ordem consistente
+* Remover imports não utilizados
+* Priorizar clareza sobre quantidade de linhas
+
+---
+
+## Ordem padrão dos imports
+
+```php
+// LIBS EXTERNAS
+// QUERIES
+// SERVICES
+// REPOSITORIES
+// UTILS
+// MODELS
+```
+
+---
+
+## Regras Gerais
+
+* Não alterar padrões arquiteturais sem necessidade
+* Não adicionar dependências sem justificativa
+* Não criar "helpers genéricos" prematuramente
+* Não mover arquivos sem motivo claro
+* Evitar efeitos colaterais fora do escopo da tarefa
+* Em caso de dúvida, preferir a solução mais simples
+* SEMPRE esclarecer todas dúvidas pendentes com o dev antes de fazer algo.
